@@ -28,28 +28,22 @@ The system is built on AWS Cloud infrastructure with a multi-agent architecture 
 8. **External Integration Layer**: MapMyIndia and GapMaps for location intelligence
 
 ```mermaid
-graph TB
-    subgraph "Mobile Client (AWS Amplify)"
+graph LR
+    subgraph CLIENT["Mobile Client (AWS Amplify)"]
+        direction TB
         UI[User Interface]
+        AUTH[Authentication Module]
         VIM[Voice Input Module]
         ARP[Audio Response Player]
         OC[Offline Cache]
         SM[Sync Manager]
-        AUTH[Authentication Module]
     end
     
-    subgraph "AWS Cloud"
+    subgraph CLOUD["AWS Cloud Services"]
+        direction TB
         COGNITO[Amazon Cognito]
-        LAMBDA[Lambda Functions]
         APIGW[API Gateway]
-        
-        subgraph "Agent Core"
-            CA[Conversation Agent]
-            LIA[Location Intelligence Agent]
-            NMA[News & Market Analysis Agent]
-            MEMORY[Agent Core Memory]
-        end
-        
+        LAMBDA[Lambda Functions]
         TRANSCRIBE[Amazon Transcribe]
         POLLY[Amazon Polly]
         BEDROCK[Amazon Bedrock]
@@ -57,36 +51,63 @@ graph TB
         OPENSEARCH[Amazon OpenSearch]
     end
     
-    subgraph "External Services"
-        MAPSMYINDIA[MapMyIndia]
+    subgraph AGENTS["Agent Core"]
+        direction TB
+        CA[Conversation Agent]
+        LIA[Location Intelligence Agent]
+        NMA[News & Market Analysis Agent]
+        MEMORY[Agent Core Memory]
+    end
+    
+    subgraph EXTERNAL["External Services"]
+        direction TB
+        MAPS[MapMyIndia]
         GAPMAPS[GapMaps]
     end
     
+    %% Authentication Flow
     UI --> AUTH
     AUTH --> COGNITO
+    
+    %% Voice Input Flow
     VIM --> TRANSCRIBE
     TRANSCRIBE --> CA
+    
+    %% Agent Orchestration
     CA --> LIA
     CA --> NMA
     CA --> MEMORY
-    LIA --> MAPSMYINDIA
-    LIA --> GAPMAPS
-    NMA --> OPENSEARCH
     CA --> BEDROCK
     BEDROCK --> KB
+    
+    %% Location Services
+    LIA --> MAPS
+    LIA --> GAPMAPS
+    
+    %% Market Analysis
+    NMA --> OPENSEARCH
+    
+    %% Audio Response
     CA --> POLLY
     POLLY --> ARP
     
+    %% Offline & Sync
     VIM --> OC
     OC --> SM
     SM --> APIGW
     APIGW --> LAMBDA
     LAMBDA --> CA
     
-    style OC fill:#f9f,stroke:#333
-    style SM fill:#f9f,stroke:#333
-    style BEDROCK fill:#ff9,stroke:#333
-    style COGNITO fill:#9f9,stroke:#333
+    %% Styling
+    style OC fill:#ffccff,stroke:#333,stroke-width:2px
+    style SM fill:#ffccff,stroke:#333,stroke-width:2px
+    style BEDROCK fill:#ffffcc,stroke:#333,stroke-width:2px
+    style COGNITO fill:#ccffcc,stroke:#333,stroke-width:2px
+    style CA fill:#cce5ff,stroke:#333,stroke-width:2px
+    style CLIENT fill:#f0f0f0,stroke:#666,stroke-width:3px
+    style CLOUD fill:#e6f3ff,stroke:#666,stroke-width:3px
+    style AGENTS fill:#fff0e6,stroke:#666,stroke-width:3px
+    style EXTERNAL fill:#f0fff0,stroke:#666,stroke-width:3px
 ```
 
 ### Component Responsibilities
