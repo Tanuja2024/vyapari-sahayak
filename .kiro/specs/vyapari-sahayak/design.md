@@ -70,39 +70,41 @@ graph TB
     end
     
     %% Authentication Flow
-    UI --> AUTH
-    AUTH --> COGNITO
+    UI -.->|1| AUTH
+    AUTH ==>|2| COGNITO
     
     %% Voice Input Flow
-    VIM --> TRANSCRIBE
-    TRANSCRIBE --> CA
+    VIM ==>|3| TRANSCRIBE
+    TRANSCRIBE ==>|4| CA
     
     %% Agent Orchestration
-    CA --> LIA
-    CA --> NMA
-    CA --> MEMORY
-    CA --> BEDROCK
-    BEDROCK --> KB
+    CA ==>|5a| LIA
+    CA ==>|5b| NMA
+    CA ==>|5c| MEMORY
+    CA ==>|6| BEDROCK
+    BEDROCK ==>|7| KB
     
     %% Location Services
-    LIA --> MAPS
-    LIA --> GAPMAPS
+    LIA ==>|8a| MAPS
+    LIA ==>|8b| GAPMAPS
     
     %% Market Analysis
-    NMA --> OPENSEARCH
+    NMA ==>|9| OPENSEARCH
     
     %% Audio Response
-    CA --> POLLY
-    POLLY --> ARP
+    CA ==>|10| POLLY
+    POLLY ==>|11| ARP
     
     %% Offline & Sync
-    VIM --> OC
-    OC --> SM
-    SM --> APIGW
-    APIGW --> LAMBDA
-    LAMBDA --> CA
+    VIM -.->|12| OC
+    OC -.->|13| SM
+    SM ==>|14| APIGW
+    APIGW ==>|15| LAMBDA
+    LAMBDA ==>|16| CA
     
     %% Black and White Styling
+    linkStyle default stroke:#000000,stroke-width:3px
+    
     style CLIENT fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
     style CLOUD fill:#f5f5f5,stroke:#000000,stroke-width:3px,color:#000000
     style AGENTS fill:#e8e8e8,stroke:#000000,stroke-width:3px,color:#000000
