@@ -27,8 +27,12 @@ The system is built on AWS Cloud infrastructure with a multi-agent architecture 
 7. **Search Layer**: Amazon OpenSearch Service for indexed search and semantic retrieval
 8. **External Integration Layer**: MapMyIndia and GapMaps for location intelligence
 
+### Architecture Diagrams
+
+#### System Architecture Diagram
+
 ```mermaid
-graph LR
+graph TB
     subgraph CLIENT["Mobile Client (AWS Amplify)"]
         direction TB
         UI[User Interface]
@@ -98,16 +102,119 @@ graph LR
     APIGW --> LAMBDA
     LAMBDA --> CA
     
-    %% Styling
-    style OC fill:#ffccff,stroke:#333,stroke-width:2px
-    style SM fill:#ffccff,stroke:#333,stroke-width:2px
-    style BEDROCK fill:#ffffcc,stroke:#333,stroke-width:2px
-    style COGNITO fill:#ccffcc,stroke:#333,stroke-width:2px
-    style CA fill:#cce5ff,stroke:#333,stroke-width:2px
-    style CLIENT fill:#f0f0f0,stroke:#666,stroke-width:3px
-    style CLOUD fill:#e6f3ff,stroke:#666,stroke-width:3px
-    style AGENTS fill:#fff0e6,stroke:#666,stroke-width:3px
-    style EXTERNAL fill:#f0fff0,stroke:#666,stroke-width:3px
+    %% Black and White Styling
+    style CLIENT fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
+    style CLOUD fill:#f5f5f5,stroke:#000000,stroke-width:3px,color:#000000
+    style AGENTS fill:#e8e8e8,stroke:#000000,stroke-width:3px,color:#000000
+    style EXTERNAL fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    
+    style UI fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style AUTH fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style VIM fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style ARP fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style OC fill:#d3d3d3,stroke:#000000,stroke-width:2px,color:#000000
+    style SM fill:#d3d3d3,stroke:#000000,stroke-width:2px,color:#000000
+    
+    style COGNITO fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style APIGW fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style LAMBDA fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style TRANSCRIBE fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style POLLY fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style BEDROCK fill:#e0e0e0,stroke:#000000,stroke-width:2px,color:#000000
+    style KB fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style OPENSEARCH fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    
+    style CA fill:#d3d3d3,stroke:#000000,stroke-width:2px,color:#000000
+    style LIA fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style NMA fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style MEMORY fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    
+    style MAPS fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style GAPMAPS fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+```
+
+#### Data Flow Diagram
+
+```mermaid
+flowchart TD
+    START([User Opens App]) --> CHECK{Internet<br/>Connected?}
+    
+    CHECK -->|No| OFFLINE[Display Offline Content]
+    CHECK -->|Yes| AUTH_CHECK{Authenticated?}
+    
+    AUTH_CHECK -->|No| OTP_REQ[Request OTP]
+    OTP_REQ --> OTP_VERIFY[Verify OTP]
+    OTP_VERIFY --> SESSION[Create Session]
+    AUTH_CHECK -->|Yes| SESSION
+    
+    SESSION --> VOICE_INPUT[User Speaks/Types]
+    VOICE_INPUT --> STT[Speech-to-Text<br/>Amazon Transcribe]
+    STT --> EXTRACT[Extract Context<br/>Entities & Intent]
+    
+    EXTRACT --> AGENT_DECISION{Need More<br/>Context?}
+    AGENT_DECISION -->|Yes| ASK_QUESTION[Generate Question]
+    ASK_QUESTION --> TTS1[Text-to-Speech]
+    TTS1 --> PLAY1[Play Audio Response]
+    PLAY1 --> VOICE_INPUT
+    
+    AGENT_DECISION -->|No| DELEGATE{Query Type?}
+    
+    DELEGATE -->|Location| LOC_AGENT[Location Intelligence Agent]
+    DELEGATE -->|Market| MARKET_AGENT[News & Market Agent]
+    DELEGATE -->|General| CONV_AGENT[Conversation Agent]
+    
+    LOC_AGENT --> MAPS_API[Query MapMyIndia/GapMaps]
+    MARKET_AGENT --> SEARCH[Query OpenSearch]
+    CONV_AGENT --> BEDROCK[Amazon Bedrock]
+    
+    MAPS_API --> COMBINE[Combine Insights]
+    SEARCH --> COMBINE
+    BEDROCK --> KB[Knowledge Base]
+    KB --> COMBINE
+    
+    COMBINE --> GENERATE[Generate Guidance]
+    GENERATE --> STORE[Store in Memory]
+    STORE --> TTS2[Text-to-Speech<br/>Amazon Polly]
+    TTS2 --> PLAY2[Play Audio Response]
+    
+    PLAY2 --> FEEDBACK{User Provides<br/>Feedback?}
+    FEEDBACK -->|Yes| SAVE_FEEDBACK[Save Feedback]
+    FEEDBACK -->|No| END_SESSION{Continue?}
+    SAVE_FEEDBACK --> END_SESSION
+    
+    END_SESSION -->|Yes| VOICE_INPUT
+    END_SESSION -->|No| CLOSE[Close Session]
+    
+    OFFLINE --> CACHE[Load Cached Content]
+    CACHE --> OFFLINE_VOICE[User Speaks]
+    OFFLINE_VOICE --> QUEUE[Queue for Sync]
+    QUEUE --> WAIT{Connection<br/>Restored?}
+    WAIT -->|Yes| SYNC[Sync Data]
+    SYNC --> SESSION
+    WAIT -->|No| OFFLINE_VOICE
+    
+    CLOSE --> SAVE_SESSION[Save Session Data]
+    SAVE_SESSION --> END([End])
+    
+    %% Black and White Styling
+    style START fill:#000000,stroke:#000000,stroke-width:2px,color:#ffffff
+    style END fill:#000000,stroke:#000000,stroke-width:2px,color:#ffffff
+    style CHECK fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style AUTH_CHECK fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style AGENT_DECISION fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style DELEGATE fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style FEEDBACK fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style END_SESSION fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    style WAIT fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    
+    style OFFLINE fill:#e8e8e8,stroke:#000000,stroke-width:2px,color:#000000
+    style CACHE fill:#e8e8e8,stroke:#000000,stroke-width:2px,color:#000000
+    style QUEUE fill:#e8e8e8,stroke:#000000,stroke-width:2px,color:#000000
+    style SYNC fill:#e8e8e8,stroke:#000000,stroke-width:2px,color:#000000
+    
+    style BEDROCK fill:#d3d3d3,stroke:#000000,stroke-width:2px,color:#000000
+    style KB fill:#d3d3d3,stroke:#000000,stroke-width:2px,color:#000000
+    style STORE fill:#d3d3d3,stroke:#000000,stroke-width:2px,color:#000000
 ```
 
 ### Component Responsibilities
